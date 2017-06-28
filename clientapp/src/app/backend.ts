@@ -26,7 +26,10 @@ export class Backend {
   }
 
   rateTalk(talk: Talk, rating: number): void {
-    this.http.post(`${this.url}/rate`, {id: talk.id, yourRating: rating}).forEach(() => {})
+    this.http.post(`${this.url}/rate`, {id: talk.id, yourRating: rating}).catch((e: any) => {
+      talk.yourRating = null;
+      throw e;
+    }).forEach(() => {})
   }
 
   changeFilters(filters: Filters): void {
