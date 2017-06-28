@@ -1,0 +1,16 @@
+{
+  "name": "server-app",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "server": "tsc && node dist/server.js"
+  },
+  "dependencies": {
+    "express": "4.14.0",
+    "body-parser": "1.16.0"
+  },
+  "devDependencies": {
+    "typescript": "2.1.5"
+  }
+}

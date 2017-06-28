@@ -1,0 +1,18 @@
+:host {
+  padding: 10px;
+  display: flex;
+}
+
+div {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+md-input-container {
+  flex-grow: 1;
+}
+
+md-checkbox {
+  flex-grow: 1;
+}
