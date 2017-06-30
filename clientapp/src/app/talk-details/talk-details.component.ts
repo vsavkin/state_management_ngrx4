@@ -3,7 +3,8 @@ import {Backend} from "../backend";
 import {ActivatedRoute} from "@angular/router";
 import 'rxjs/add/operator/mergeMap';
 import {WatchService} from "../watch";
-import {Talk} from "../model";
+import { Talk, State } from "../model";
+import { Store } from "@ngrx/store";
 
 @Component({
   selector: 'talk-details-cmp',
@@ -12,16 +13,32 @@ import {Talk} from "../model";
 })
 export class TalkDetailsComponent {
   talk: Talk;
+  isWatched: boolean;
 
-  constructor(private backend: Backend, public watchService: WatchService, private route: ActivatedRoute) {
-    route.params.mergeMap(p => this.backend.findTalk(+p['id'])).subscribe(t => this.talk = t);
+  constructor(private route: ActivatedRoute, private store: Store<State>) {
+    store.select('app').subscribe(t => {
+      const id = (+route.snapshot.paramMap.get('id'));
+      this.talk = t.talks[id];
+      this.isWatched = t.watched[id];
+    });
   }
 
   handleRate(newRating: number): void {
-    this.backend.rateTalk(this.talk, newRating);
+    this.store.dispatch({
+      type: 'RATE',
+      payload: {
+        talkId: this.talk.id,
+        rating: newRating
+      }
+    });
   }
 
   handleWatch(): void {
-    this.watchService.watch(this.talk);
+    this.store.dispatch({
+      type: 'WATCH',
+      payload: {
+        talkId: this.talk.id,
+      }
+    });
   }
 }

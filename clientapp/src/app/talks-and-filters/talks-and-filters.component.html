@@ -1,2 +1,2 @@
-<filters-cmp [filters]="app.filters" (filtersChange)="handleFiltersChange($event)"></filters-cmp>
-<talks-cmp [talks]="app.talks"></talks-cmp>
+<filters-cmp [filters]="filters|async" (filtersChange)="handleFiltersChange($event)"></filters-cmp>
+<talks-cmp [talks]="talks|async"></talks-cmp>

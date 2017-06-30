@@ -1,7 +1,8 @@
 import {Component, Inject} from "@angular/core";
-import {Backend} from "../backend";
-import {Router, ActivatedRoute} from "@angular/router";
-import { Filters, createFiltersObject } from "../model";
+import { Router, Params } from "@angular/router";
+import { Filters, State, Talk } from "../model";
+import { Store } from "@ngrx/store";
+import { Observable } from "rxjs/Observable";
 
 @Component({
   selector: 'app-cmp',
@@ -9,14 +10,23 @@ import { Filters, createFiltersObject } from "../model";
   styleUrls: ['./talks-and-filters.component.css']
 })
 export class TalksAndFiltersComponent {
-  constructor(public app: Backend, private router: Router, private route: ActivatedRoute) {
-    route.queryParams.subscribe(p => {
-      this.app.changeFilters(createFiltersObject(p));
-    });
+  filters: Observable<Filters>;
+  talks: Observable<Talk[]>;
+
+  constructor(private router: Router, store: Store<State>) {
+    this.filters = store.select('app', 'filters');
+    this.talks = store.select('app').map(s => s.list.map(n => s.talks[n]));
   }
 
   handleFiltersChange(filters: Filters): void {
-    this.app.changeFilters(filters);
-    this.router.navigate(["/"], {queryParams: filters});
+    this.router.navigate(["/talks", this.createParams(filters)]);
+  }
+
+  private createParams(filters: Filters): Params {
+    const r: any = {};
+    if (filters.speaker) r.speaker = filters.speaker;
+    if (filters.title) r.title = filters.title;
+    if (filters.minRating) r.minRating = filters.minRating;
+    return r;
   }
 }

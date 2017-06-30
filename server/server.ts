@@ -1,3 +1,4 @@
+
 import * as express from "express";
 import * as bodyParser from "body-parser";
 
@@ -53,7 +54,10 @@ router.get("/talks", (req, res) => {
     return titlePass && speakerPass && ratingPass;
   });
 
-  res.json({talks: filteredTalks});
+  const talks = filteredTalks.reduce((acc, t) => (acc[t.id] = t, acc), {});
+  const list = filteredTalks.map(t => t.id);
+
+  res.json({talks, list});
 });
 
 router.get("/talk", (req, res) => {
@@ -67,9 +71,15 @@ router.post("/rate", (req, res) => {
   const id = req.body.id;
   const yourRating = req.body.yourRating;
   console.log("POST  /rate", "id:", id, "yourRating:", yourRating);
-  const talk = _talks.filter(t => t.id === id)[0];
-  talk.yourRating = yourRating;
-  res.json({status: 'OK'});
+
+  if (yourRating > 10) {
+    res.status(500);
+    res.json({status: 'ERROR', message: "Rating cannot be > 10"});
+  } else {
+    const talk = _talks.filter(t => t.id === id)[0];
+    talk.yourRating = yourRating;
+    res.json({status: 'OK'});
+  }
 });
 
 app.use(function(req, res, next) {

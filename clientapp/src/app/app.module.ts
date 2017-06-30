@@ -16,7 +16,11 @@ import { RouterModule } from '@angular/router';
 import { MaterialModule, MdInputModule, MdCheckboxModule } from '@angular/material';
 import { Backend } from "./backend";
 import { WatchService } from "./watch";
+import { appReducer, initialState, State, TalksEffects } from './model';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { StoreModule, ActionReducer, combineReducers } from '@ngrx/store';
+import { EffectsModule } from "@ngrx/effects";
+import { StoreRouterConnectingModule } from "@ngrx/router-store";
 
 @NgModule({
   declarations: [
@@ -39,14 +43,25 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
     MaterialModule,
     MdInputModule,
     MdCheckboxModule,
+
     RouterModule.forRoot([
-      { path: '',  pathMatch: 'full', component: TalksAndFiltersComponent },
+      { path: '',  pathMatch: 'full', redirectTo: 'talks' },
+      { path: 'talks',  pathMatch: 'full', component: TalksAndFiltersComponent },
       { path: 'talk/:id', component: TalkDetailsComponent }
     ], {useHash: true}),
+
+    StoreModule.forRoot(<any>{app: appReducer}, {initialState}),
+
+    EffectsModule.forRoot([
+      TalksEffects
+    ]),
+
+    StoreRouterConnectingModule
   ],
   providers: [
     Backend,
-    WatchService
+    WatchService,
+    TalksEffects
   ],
   bootstrap: [AppComponent]
 })

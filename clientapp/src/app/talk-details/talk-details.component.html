@@ -12,7 +12,7 @@
       {{talk.description}}
     </div>
 
-    <watch-button [talk]="talk" [watched]="watchService.isWatched(talk)" (watch)="handleWatch()"></watch-button>
+    <watch-button [talk]="talk" [watched]="isWatched" (watch)="handleWatch()"></watch-button>
     <rate-button [talk]="talk" (rate)="handleRate($event)"></rate-button>
   </div>
 </md-card>

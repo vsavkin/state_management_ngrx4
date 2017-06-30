@@ -10,7 +10,7 @@
       true,
       "check-space"
     ],
-    "curly": true,
+    "curly": false,
     "forin": true,
     "import-blacklist": [
       true,
@@ -21,7 +21,6 @@
       true,
       "spaces"
     ],
-    "interface-over-type-literal": true,
     "label-position": true,
     "max-line-length": [
       true,
