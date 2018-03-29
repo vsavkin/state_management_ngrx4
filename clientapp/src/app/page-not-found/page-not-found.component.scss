@@ -1,0 +1,13 @@
+.not-found {
+    max-width: 70%;
+    margin: auto;
+    margin-top: 10px;
+    &>.message {
+        & span {
+            font-size: 20px;
+        }
+    }
+    & button {
+        margin: 15px;
+    }
+}

@@ -1,0 +1,25 @@
+:host {
+    margin: 10px;
+}
+
+mat-card {
+    display: flex;
+    max-width: 70%;
+    margin: auto;
+    &>#rating-column {
+        margin-right: 20px;
+    }
+    &>#rating {
+        display: block;
+        font-size: 25px;
+    }
+    &>#title {
+        display: block;
+        font-size: 20px;
+    }
+    &>#speaker {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+}
