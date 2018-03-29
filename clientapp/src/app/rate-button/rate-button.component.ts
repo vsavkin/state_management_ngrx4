@@ -1,9 +1,10 @@
-import {Component, Input, EventEmitter, Output} from '@angular/core';
-import {Talk} from "../model";
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Talk } from '../model';
 
 @Component({
   selector: 'rate-button',
-  templateUrl: './rate-button.component.html'
+  templateUrl: './rate-button.component.html',
+  styleUrls: ['./rate-button.component.scss']
 })
 export class RateButtonComponent {
   @Input() talk: Talk;

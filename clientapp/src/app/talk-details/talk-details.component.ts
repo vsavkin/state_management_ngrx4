@@ -1,29 +1,33 @@
-import {Component, Input} from "@angular/core";
-import {Backend} from "../backend";
-import {ActivatedRoute} from "@angular/router";
-import 'rxjs/add/operator/mergeMap';
-import {WatchService} from "../watch";
-import { Talk, State } from "../model";
-import { Store } from "@ngrx/store";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Store, select } from '@ngrx/store';
+import { State, Talk, AppState } from '../model';
 
 @Component({
   selector: 'talk-details-cmp',
   templateUrl: './talk-details.component.html',
-  styleUrls: ['./talk-details.component.css']
+  styleUrls: ['./talk-details.component.scss']
 })
 export class TalkDetailsComponent {
-  talk: Talk;
-  isWatched: boolean;
 
-  constructor(private route: ActivatedRoute, private store: Store<State>) {
-    store.select('app').subscribe(t => {
-      const id = (+route.snapshot.paramMap.get('id'));
-      this.talk = t.talks[id];
-      this.isWatched = t.watched[id];
+  talk: Talk;
+  watched: boolean;
+
+  constructor(
+    private route: ActivatedRoute,
+    private store: Store<State>) {
+
+    store.pipe(
+      select('app')
+    ).subscribe((x: AppState) => {
+      const id = +route.snapshot.paramMap.get('id');
+      this.talk = x.talks[id];
+      this.watched = x.watched[id];
     });
+
   }
 
-  handleRate(newRating: number): void {
+  handleRating(newRating: number) {
     this.store.dispatch({
       type: 'RATE',
       payload: {
@@ -33,11 +37,11 @@ export class TalkDetailsComponent {
     });
   }
 
-  handleWatch(): void {
+  handleWatch() {
     this.store.dispatch({
       type: 'WATCH',
       payload: {
-        talkId: this.talk.id,
+        talkId: this.talk.id
       }
     });
   }

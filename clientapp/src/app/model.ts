@@ -1,13 +1,13 @@
-import {RouterAction, ROUTER_NAVIGATION, RouterNavigationAction} from '@ngrx/router-store';
-import {Actions, Effect} from '@ngrx/effects';
-import {WatchService} from "app/watch";
-import {Backend} from "app/backend";
-import {Params, ActivatedRouteSnapshot} from "@angular/router";
-import {Store, combineReducers} from "@ngrx/store";
-import {Injectable} from "@angular/core";
-import {of} from "rxjs/observable/of";
-import {Observable} from "rxjs/Observable";
-import 'rxjs/add/operator/withLatestFrom';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { of } from 'rxjs/observable/of';
+import { RouterAction } from '@ngrx/router-store';
+import { Store } from '@ngrx/store';
+import { Effect, Actions, ofType } from '@ngrx/effects';
+import { ActivatedRoute, ActivatedRouteSnapshot, Params } from '@angular/router';
+import { ROUTER_NAVIGATION, RouterNavigationAction } from '@ngrx/router-store';
+import { Backend } from './backend';
+import { map, filter, withLatestFrom, switchMap, catchError } from 'rxjs/operators';
 
 // state
 export type Talk = { id: number, title: string, speaker: string, description: string, yourRating: number, rating: number };
@@ -16,106 +16,130 @@ export type AppState = { talks: { [id: number]: Talk }, list: number[], filters:
 export type State = { app: AppState }; // this will also contain router state
 
 export const initialState: State = {
-  app: {
-    filters: {speaker: "", title: "", minRating: 0},
-    talks: {},
-    list: [],
-    watched: {}
-  }
-};
+    app: {
+        talks: {},
+        list: [],
+        filters: {
+            speaker: "",
+            minRating: 0,
+            title: ""
+        },
+        watched: []
+    }
+}
 
-// actions
-export type TalksUpdated = { type: 'TALKS_UPDATED', payload: { talks: { [id: number]: Talk }, list: number[] }, filters: Filters };
+export type TalksUpdated = { type: 'TALKS_UPDATED', payload: { talks: { [id: number]: Talk }, list: number[], filters: Filters } };
 export type TalkUpdated = { type: 'TALK_UPDATED', payload: Talk };
 export type Watch = { type: 'WATCH', payload: { talkId: number } };
 export type TalkWatched = { type: 'TALK_WATCHED', payload: { talkId: number } };
 export type Rate = { type: 'RATE', payload: { talkId: number, rating: number } };
-export type Unrate = { type: 'UNRATE', payload: { talkId: number, error: any } };
-type Action = RouterAction<State> | TalksUpdated | TalkUpdated | Watch | TalkWatched | Rate | Unrate;
+export type UnRate = { type: 'UNRATE', payload: { talkId: number }, error: any };
+type Action = TalksUpdated | TalkUpdated | Watch | TalkWatched | Rate | UnRate | RouterAction<State>;
 
-// reducer
-export function appReducer(state: AppState, action: Action): AppState {
-  switch (action.type) {
-    case 'TALKS_UPDATED': {
-      return {...state, ...action.payload};
+export function appReducer(state: AppState, action): AppState {
+    switch (action.type) {
+        case 'TALKS_UPDATED': {
+            return { ...state, ...action.payload };
+        }
+        case 'TALK_UPDATED': {
+            const talks = { ...state.talks };
+            talks[action.payload.id] = action.payload;
+            return { ...state, talks };
+        }
+        case 'TALK_WATCH': {
+            const watched = { ...state.watched };
+            watched[action.payload.talkId] = true;
+            return { ...state, watched };
+        }
+        case 'RATE': {
+            const talks = { ...state.talks };
+            talks[action.payload.talkId].rating = action.payload.rating;
+            return { ...state, talks };
+        }
+        case 'UNRATE': {
+            const talks = { ...state.talks };
+            talks[action.payload.talkId].rating = null;
+            return { ...state, talks };
+        }
+        default: {
+            return state;
+        }
     }
-    case  'TALK_UPDATED': {
-      const talks = {...state.talks};
-      talks[action.payload.id] = action.payload;
-      return {...state, talks};
-    }
-    case 'RATE': {
-      const talks = {...state.talks};
-      talks[action.payload.talkId].rating = action.payload.rating;
-      return {...state, talks};
-    }
-    case 'UNRATE': {
-      const talks = {...state.talks};
-      talks[action.payload.talkId].rating = null;
-      return {...state, talks};
-    }
-    case 'TALK_WATCHED': {
-      const watched = {...state.watched};
-      watched[action.payload.talkId] = true;
-      return {...state, watched};
-    }
-    default: {
-      return state;
-    }
-  }
 }
 
 @Injectable()
 export class TalksEffects {
-  @Effect() navigateToTalks = this.handleNavigation('talks', (r: ActivatedRouteSnapshot) => {
-    const filters = createFilters(r.params);
-    return this.backend.findTalks(filters).map(resp => ({type: 'TALKS_UPDATED', payload: {...resp, filters}}));
-  });
 
-  @Effect() navigateToTalk = this.handleNavigation('talk/:id', (r: ActivatedRouteSnapshot, state: State) => {
-    const id = +r.paramMap.get('id');
-    if (! state.app.talks[id]) {
-      return this.backend.findTalk(+r.paramMap.get('id')).map(resp => ({type: 'TALK_UPDATED', payload: resp}));
-    } else {
-      return of();
+    @Effect() navigateToTalks = this.handleNavigation('talks', (r: ActivatedRouteSnapshot, s: State) => {
+        const filters = createFilters(r.params);
+        return this.backend
+            .findTalks(filters)
+            .pipe(
+                map(resp => ({ type: 'TALKS_UPDATED', payload: { ...resp, filters } })
+                )
+            );
+    });
+
+    @Effect() navigateToTalk = this.handleNavigation('talk/:id', (r: ActivatedRouteSnapshot, s: State) => {
+        const id = +r.paramMap.get('id');
+        if (!s.app.talks[id]) {
+            return this.backend
+                .findTalk(id).pipe(
+                    map(resp => ({ type: 'TALK_UPDATED', payload: resp['talk'] }))
+                );
+        }
+        return of();
+    });
+
+    @Effect() rateTalk = this.actions$.pipe(
+        ofType('RATE'),
+        switchMap((r: Rate) => {
+            return this.backend
+                .rateTalk(r.payload.talkId, r.payload.rating)
+                .pipe(
+                    switchMap(resp => of()),
+                    catchError(error => {
+                        console.log(error);
+                        return of({ type: 'UNRATE', payload: { talkId: r.payload.talkId } });
+                    })
+                )
+        })
+    )
+
+    @Effect() watchTalk = this.actions$
+        .pipe(
+            ofType('WATCH'),
+            map((p: Watch) => {
+                const talkId = p.payload.talkId;
+                //do anything you want
+                return ({ type: 'TALK_WATCH', payload: p.payload });
+            }));
+
+    constructor(
+        private actions$: Actions,
+        private router: ActivatedRoute,
+        private store: Store<State>,
+        private backend: Backend) {
     }
-  });
 
-  @Effect() rateTalk = this.actions.ofType('RATE').
-    switchMap((a: Rate) => {
-      return this.backend.rateTalk(a.payload.talkId, a.payload.rating).switchMap(() => of()).catch(e => {
-        console.log('Error', e);
-        return of({type: 'UNRATE', payload: {talkId: a.payload.talkId}});
-      });
-    });
+    private handleNavigation(segment: string, callback: (a: ActivatedRouteSnapshot, state: State) => Observable<any>) {
 
-  @Effect() watchTalk = this.actions.ofType('WATCH').
-    map((a: Watch) => {
-      this.watch.watch(a.payload.talkId);
-      return {type: 'TALK_WATCHED', payload: a.payload};
-    });
+        return this.actions$
+            .pipe(
+                ofType(ROUTER_NAVIGATION),
+                map((r: RouterNavigationAction) => r.payload.routerState.root.firstChild),
+                filter(s => s.routeConfig.path === segment),
+                withLatestFrom(this.store),
+                switchMap(a => callback(a[0], a[1])),
+                catchError(e => {
+                    console.log('Network error -', e);
+                    return of();
+                })
+            );
 
-  constructor(private actions: Actions, private store: Store<State>, private backend: Backend, private watch: WatchService) {
-  }
-
-  private handleNavigation(segment: string, callback: (a: ActivatedRouteSnapshot, state: State) => Observable<any>) {
-    const nav = this.actions.ofType(ROUTER_NAVIGATION).
-      map(firstSegment).
-      filter(s => s.routeConfig.path === segment);
-
-    return nav.withLatestFrom(this.store).switchMap(a => callback(a[0], a[1])).catch(e => {
-      console.log('Network error', e);
-      return of();
-    });
-  }
+    }
 }
-
-
-function firstSegment(r: RouterNavigationAction) {
-  return r.payload.routerState.root.firstChild;
-}
-
 
 function createFilters(p: Params): Filters {
-  return {speaker: p['speaker'] || null, title: p['title'] || null, minRating: p['minRating'] ? +p['minRating'] : 0};
+    return { speaker: p['speaker'] || null, title: p['title'] || null, minRating: p['minRating'] ? +p['minRating'] : 0 };
 }

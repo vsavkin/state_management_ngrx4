@@ -1,0 +1,44 @@
+:host {
+    margin: 10px;
+}
+
+.talk-details {
+    max-width: 70%;
+    margin: auto;
+    &>mat-card {
+        display: flex;
+        margin: auto;
+        &>.rating-column {
+            margin-right: 20px;
+            &>.rating {
+                display: block;
+                font-size: 25px;
+            }
+        }
+        &>.title {
+            display: block;
+            font-size: 20px;
+        }
+        &>.speaker {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        &>.description {
+            margin-bottom: 20px;
+        }
+        & .actions {
+            display: block;
+            clear: both;
+            margin-top: 15px;
+        }
+        & .message {
+            margin-top: 15px;
+            font-size: 12px;
+        }
+    }
+    &>.all-talks {
+        margin: 15px;
+        margin-left: 0px;
+    }
+}

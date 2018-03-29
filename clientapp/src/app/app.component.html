@@ -1,5 +1,8 @@
-<h1>
-  Tech Talks
-</h1>
-
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <span (click)="home()" class="home">Tech Talks</span>
+    <span class="example-spacer"></span>
+    <mat-icon class="example-icon">favorite</mat-icon>
+  </mat-toolbar-row>
+</mat-toolbar>
 <router-outlet></router-outlet>

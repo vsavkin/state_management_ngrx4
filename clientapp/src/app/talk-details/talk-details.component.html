@@ -1,18 +1,24 @@
-<md-card *ngIf="talk">
-  <div id="rating-column">
-    Rating
-    <span id="rating">{{talk.rating | formatRating}}</span>
-  </div>
-
-  <div>
-    <span id="title">{{talk.title}}</span>
-    <span id="speaker">{{talk.speaker}}</span>
-
-    <div id="description">
-      {{talk.description}}
+<div class="talk-details">
+  <mat-card *ngIf="talk">
+    <div class="rating-column">
+      <span class="rating">{{ talk.rating | formatRating}}</span>
+    </div>
+    <div>
+      <span class="title">{{talk.title}}</span>
+      <span class="speaker">{{talk.speaker}}</span>
+      <span class="description">{{talk.description}}</span>
+      <div class="actions">
+        <watch-button [watched]="watched" (watch)="handleWatch()"></watch-button>
+        <rate-button [talk]="talk" (rate)="handleRating($event)"></rate-button>
+      </div>
+      <div class="message" *ngIf="!!talk.yourRating">
+        <span>Your Rating : {{ talk.yourRating }}</span>
+      </div>
     </div>
 
-    <watch-button [talk]="talk" [watched]="isWatched" (watch)="handleWatch()"></watch-button>
-    <rate-button [talk]="talk" (rate)="handleRate($event)"></rate-button>
+  </mat-card>
+
+  <div class="all-talks">
+    <a mat-raised-button [routerLink]="['/talks']">All Talks</a>
   </div>
-</md-card>
+</div>

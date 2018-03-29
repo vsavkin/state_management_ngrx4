@@ -48,8 +48,8 @@ router.get("/talks", (req, res) => {
   const filters = req.query;
   console.log("GET /talks", "filters:", filters);
   const filteredTalks = _talks.filter(t => {
-    const titlePass = filters.title ? t.title.indexOf(filters.title) > -1 : true;
-    const speakerPass = filters.speaker ? t.speaker.indexOf(filters.speaker) > -1 : true;
+    const titlePass = filters.title ? t.title.toLowerCase().indexOf(filters.title.toLowerCase()) > -1 : true;
+    const speakerPass = filters.speaker ? t.speaker.toLowerCase().indexOf(filters.speaker.toLowerCase()) > -1 : true;
     const ratingPass = filters.minRating ? t.rating >= filters.minRating : true;
     return titlePass && speakerPass && ratingPass;
   });
@@ -57,14 +57,14 @@ router.get("/talks", (req, res) => {
   const talks = filteredTalks.reduce((acc, t) => (acc[t.id] = t, acc), {});
   const list = filteredTalks.map(t => t.id);
 
-  res.json({talks, list});
+  res.json({ talks, list });
 });
 
 router.get("/talk", (req, res) => {
   const id = +req.query.id;
   console.log("GET /talk", "id:", id);
   const talk = _talks.filter(t => t.id === id)[0];
-  res.json({talk});
+  res.json({ talk });
 });
 
 router.post("/rate", (req, res) => {
@@ -74,15 +74,15 @@ router.post("/rate", (req, res) => {
 
   if (yourRating > 10) {
     res.status(500);
-    res.json({status: 'ERROR', message: "Rating cannot be > 10"});
+    res.json({ status: 'ERROR', message: "Rating cannot be > 10" });
   } else {
     const talk = _talks.filter(t => t.id === id)[0];
     talk.yourRating = yourRating;
-    res.json({status: 'OK'});
+    res.json({ status: 'OK' });
   }
 });
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();

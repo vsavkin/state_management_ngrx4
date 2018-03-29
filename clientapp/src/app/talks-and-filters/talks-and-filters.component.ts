@@ -1,28 +1,32 @@
-import {Component, Inject} from "@angular/core";
-import { Router, Params } from "@angular/router";
-import { Filters, State, Talk } from "../model";
-import { Store } from "@ngrx/store";
-import { Observable } from "rxjs/Observable";
+import { Component } from '@angular/core';
+import { Router, Params } from '@angular/router';
+import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators';
+import { Store, select } from '@ngrx/store';
+import { Filters, State, Talk, AppState } from '../model';
 
 @Component({
-  selector: 'app-cmp',
+  selector: 'talks-and-filters-cmp',
   templateUrl: './talks-and-filters.component.html',
-  styleUrls: ['./talks-and-filters.component.css']
+  styleUrls: ['./talks-and-filters.component.scss']
 })
 export class TalksAndFiltersComponent {
-  filters: Observable<Filters>;
+
   talks: Observable<Talk[]>;
+  filters: Observable<Filters>;
 
-  constructor(private router: Router, store: Store<State>) {
-    this.filters = store.select('app', 'filters');
-    this.talks = store.select('app').map(s => s.list.map(n => s.talks[n]));
+  constructor(private router: Router, private store: Store<State>) {
+    this.filters = store.pipe(select('app', 'filters'));
+    this.talks = store.pipe(
+      select('app'),
+      map((t: AppState) => t.list.map(y => t.talks[y])));
   }
 
-  handleFiltersChange(filters: Filters): void {
-    this.router.navigate(["/talks", this.createParams(filters)]);
+  handleFiltersChange(filters) {
+    this.router.navigate(['/talks', this.createParams(filters)]);
   }
 
-  private createParams(filters: Filters): Params {
+  createParams(filters: Filters) {
     const r: any = {};
     if (filters.speaker) r.speaker = filters.speaker;
     if (filters.title) r.title = filters.title;

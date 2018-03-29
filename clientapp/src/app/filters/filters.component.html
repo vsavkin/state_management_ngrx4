@@ -1,13 +1,9 @@
-<div [formGroup]="filtersForm">
-  <md-input-container>
-    <input mdInput formControlName="title" placeholder="Title">
-  </md-input-container>
-
-  <md-input-container>
-    <input mdInput formControlName="speaker" placeholder="Speaker">
-  </md-input-container>
-
-  <md-checkbox formControlName="highRating">
-    High Rating
-  </md-checkbox>
+<div class="filters" [formGroup]="filtersForm">
+  <mat-form-field>
+    <input type="text" matInput formControlName="title" placeholder="Title">
+  </mat-form-field>
+  <mat-form-field>
+    <input type="text" matInput formControlName="speaker" placeholder="Speaker">
+  </mat-form-field>
+  <mat-checkbox formControlName="highRating">High Rated Only </mat-checkbox>
 </div>
